@@ -1,0 +1,11 @@
+{
+  "platforms": ["android"],
+  "android": {
+    "modules": ["expo.modules.tablelenscapture.TablelensCaptureModule"],
+    "publication": {
+      "groupId": "com.tablelens",
+      "version": "1.0.0",
+      "repository": "local-maven-repo"
+    }
+  }
+}

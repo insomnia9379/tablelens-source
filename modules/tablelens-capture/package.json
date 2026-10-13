@@ -1,0 +1,10 @@
+{
+  "name": "@tablelens/capture",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Native Android MediaProjection and conservative OCR capture for TableLens.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "files": ["android", "expo-module.config.json", "src", "README.md"],
+  "peerDependencies": { "expo": "*" }
+}
