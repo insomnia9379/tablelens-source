@@ -22,7 +22,7 @@ See [Pixel setup](docs/pixel-setup.md) for the build and phone steps. No Store s
 
 ## GitHub source and APK builds
 
-This private repository is a separate source copy; the Manus mobile project's primary repository remains managed by Manus. It includes application/native source, assets, configuration, tests, and build documentation. Dependencies, secrets, signing files, APKs, and raw local build outputs are excluded.
+This public repository is a separate source copy; the Manus mobile project's primary repository remains managed by Manus. It includes application/native source, assets, configuration, tests, and build documentation. Dependencies, secrets, signing files, APKs, and raw local build outputs are excluded.
 
 The [APK workflow](.github/workflows/android-apk.yml) runs on pushes to `main` and supports manual runs. It requests an EAS cloud build using the `preview` profile and waits for its result. Finish the Expo project-ID, `EXPO_TOKEN`, and signing setup described in [GitHub Actions APK setup](docs/github-actions-apk.md) before expecting a successful APK.
 
