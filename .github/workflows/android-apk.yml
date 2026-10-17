@@ -1,0 +1,110 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android-apk:
+    name: Validate and build APK on EAS
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v5
+
+      - name: Require Expo authentication
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [[ -z "$EXPO_TOKEN" ]]; then
+            echo "::error::Add an Actions repository secret named EXPO_TOKEN before running this workflow."
+            exit 1
+          fi
+
+      - name: Set up pinned pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 9.12.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Set up Expo and EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Require a linked EAS project
+        run: |
+          pnpm exec expo config --type public --json > "$RUNNER_TEMP/tablelens-expo-config.json"
+          node - "$RUNNER_TEMP/tablelens-expo-config.json" <<'NODE'
+          const fs = require('node:fs');
+          const config = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const projectId = config.extra?.eas?.projectId;
+          if (!projectId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(projectId)) {
+            console.error('::error::Missing or invalid extra.eas.projectId. Link the intended Expo project using eas init and commit its projectId in app.config.ts.');
+            process.exit(1);
+          }
+          NODE
+
+      - name: Typecheck
+        run: pnpm check
+
+      - name: Check native registration and generated configuration
+        run: pnpm check:native-config
+
+      - name: Run source tests
+        run: pnpm test
+
+      - name: Build preview APK and wait for the result
+        run: |
+          mkdir -p ci-logs
+          set -o pipefail
+          eas build \
+            --platform android \
+            --profile preview \
+            --non-interactive \
+            --wait \
+            --verbose-logs \
+            --build-logger-level debug \
+            2>&1 | tee ci-logs/eas-build.log
+
+      - name: Save EAS CLI output
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: eas-cli-log-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci-logs/eas-build.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Explain where to find the APK and native build logs
+        if: ${{ always() }}
+        run: |
+          {
+            echo '## Android APK build'
+            echo ''
+            echo 'This workflow builds with EAS cloud using the preview APK profile.'
+            echo 'If the EAS build step ran, open the build-details URL in its output for the APK and native Gradle/compiler logs.'
+            echo 'The GitHub artifact contains CLI output, not the APK or the complete remote compiler logs.'
+            echo 'A failure before that step is a setup or validation error; inspect the earliest failed step.'
+          } >> "$GITHUB_STEP_SUMMARY"

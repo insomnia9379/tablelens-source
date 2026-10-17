@@ -18,7 +18,15 @@ Use `pnpm dev` to run Metro on 8081 and the managed starter API on 3000. `pnpm c
 
 The custom native module is not present in a browser or stock Expo Go. An actual Android build is required for capture and floating overlays. `eas.json` supplies an internal APK profile; the managed mobile Dashboard is the intended native build handoff. No APK build or real Pixel recognition session has yet been verified.
 
-See `docs/pixel-setup.md` for the build and phone steps. No Store submission has been made.
+See [Pixel setup](docs/pixel-setup.md) for the build and phone steps. No Store submission has been made.
+
+## GitHub source and APK builds
+
+This private repository is a separate source copy; the Manus mobile project's primary repository remains managed by Manus. It includes application/native source, assets, configuration, tests, and build documentation. Dependencies, secrets, signing files, APKs, and raw local build outputs are excluded.
+
+The [APK workflow](.github/workflows/android-apk.yml) runs on pushes to `main` and supports manual runs. It requests an EAS cloud build using the `preview` profile and waits for its result. Finish the Expo project-ID, `EXPO_TOKEN`, and signing setup described in [GitHub Actions APK setup](docs/github-actions-apk.md) before expecting a successful APK.
+
+See the [October 17 status report](docs/status-2026-10-17.md), [EAS error-capture guide](docs/eas-build-debugging.md), and [historical October 16 source audit](docs/build-audit-2026-10-16.md). These checks and documents do not establish successful native compilation or real-device behavior.
 
 ## Strategy boundary
 

@@ -35,6 +35,18 @@ yarn-error.*
 # local env files
 .env*.local
 
+# Credentials and local EAS/build outputs
+.env
+.env.*
+!.env.example
+!.env.template
+/credentials.json
+*.keystore
+*.apk
+*.aab
+/ci-logs/
+/.audit/
+
 # typescript
 *.tsbuildinfo
 
